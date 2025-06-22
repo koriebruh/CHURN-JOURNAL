@@ -53,6 +53,7 @@ print("="*80)
 print(f"Analysis started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 print(f"Output directory: {OUTPUT_DIR}")
 
+
 # === STEP 1: DATA LOADING AND EXPLORATION ===
 print("\n" + "="*50)
 print("STEP 1: DATA LOADING AND EXPLORATION")
@@ -126,6 +127,7 @@ plt.tight_layout()
 plt.savefig(f"{OUTPUT_DIR}/plots/target_distribution.png", dpi=300, bbox_inches='tight')
 plt.show()
 
+
 # === STEP 3: FEATURE ENGINEERING ===
 print("\n" + "="*50)
 print("STEP 3: FEATURE ENGINEERING")
@@ -193,6 +195,7 @@ if X.shape[1] > 1:
     plt.savefig(f"{OUTPUT_DIR}/plots/correlation_matrix.png", dpi=300, bbox_inches='tight')
     plt.show()
 
+
 # === STEP 4: DATA SCALING AND SPLITTING ===
 print("\n" + "="*50)
 print("STEP 4: DATA SCALING AND SPLITTING")
@@ -247,6 +250,7 @@ print(f"Training set shape: {X_train.shape}")
 print(f"Testing set shape: {X_test.shape}")
 print(f"Training set class distribution: {np.bincount(y_train)}")
 print(f"Testing set class distribution: {np.bincount(y_test)}")
+
 
 # === STEP 5: MODEL DEFINITION AND HYPERPARAMETER TUNING ===
 print("\n" + "="*50)
@@ -465,6 +469,7 @@ if metrics_results:
     plt.savefig(f"{OUTPUT_DIR}/plots/model_comparison.png", dpi=300, bbox_inches='tight')
     plt.show()
 
+
 # === STEP 7: STATISTICAL SIGNIFICANCE TESTING ===
 print("\n" + "="*50)
 print("STEP 7: STATISTICAL SIGNIFICANCE TESTING")
@@ -519,7 +524,6 @@ if not isinstance(X_train, pd.DataFrame):
 
 if not isinstance(X_test, pd.DataFrame):
     X_test = pd.DataFrame(X_test, columns=X.columns)
-
 
 
 # final_model.fit(X_train, y_train)
@@ -620,6 +624,7 @@ plt.show()
 joblib.dump(final_model, f"{OUTPUT_DIR}/models/final_model.pkl")
 print("✓ Final model saved")
 
+
 # === STEP 9: FEATURE IMPORTANCE ANALYSIS ===
 print("\n" + "="*50)
 print("STEP 9: FEATURE IMPORTANCE ANALYSIS")
@@ -657,23 +662,21 @@ else:
     print("⚠ Selected model doesn't support feature importance")
     importance_df = pd.DataFrame()
 
+
 # === STEP 10: SHAP ANALYSIS ===
 print("\n" + "="*50)
 print("STEP 10: SHAP ANALYSIS")
 print("="*50)
-
 try:
     print("Generating SHAP explanations...")
-
     # Create SHAP explainer
     if best_model.__class__.__name__ in ['XGBClassifier', 'LGBMClassifier', 'GradientBoostingClassifier', 'RandomForestClassifier']:
-        # explainer = shap.TreeExplainer(final_model)
-        explainer = shap.Explainer(final_model, X_train)
+        explainer = shap.TreeExplainer(final_model, feature_names=X.columns)
         shap_values = explainer.shap_values(X_test[:500])  # Use subset for speed
 
         # Handle binary classification SHAP values
         if isinstance(shap_values, list):
-            shap_values_plot = shap_values[1]  # Use positive class
+            shap_values_plot = shap_values[1]  # Positive class for binary classification
         else:
             shap_values_plot = shap_values
 
@@ -681,7 +684,6 @@ try:
         # For other models, use KernelExplainer
         explainer = shap.KernelExplainer(final_model.predict_proba, X_train[:100])
         shap_values = explainer.shap_values(X_test[:100])
-
         if isinstance(shap_values, list):
             shap_values_plot = shap_values[1]
         else:
@@ -709,11 +711,11 @@ except Exception as e:
     print(f"⚠ SHAP analysis failed: {str(e)}")
     print("Continuing without SHAP analysis...")
 
+
 # === STEP 11: BIAS AND FAIRNESS ANALYSIS ===
 print("\n" + "="*50)
 print("STEP 11: BIAS AND FAIRNESS ANALYSIS")
 print("="*50)
-
 try:
     # Check if we have demographic features for fairness analysis
     demographic_features = ['gender', 'SeniorCitizen', 'Partner', 'Dependents']
@@ -725,13 +727,14 @@ try:
 
         # Create fairness analysis for SeniorCitizen if available
         if 'SeniorCitizen' in df.columns:
-            # Get predictions for original test data (before resampling)
-            X_test_orig, y_test_orig = train_test_split(X_scaled, y, test_size=0.25,
-                                                       random_state=RANDOM_SEED, stratify=y)[2:]
-            y_pred_orig = final_model.predict(X_test_orig)
+            # Get original test data (before resampling)
+            X_test_orig, y_test_orig = X_scaled, y  # Use original data
+            X_test_orig_df = pd.DataFrame(X_test_orig, columns=X.columns, index=df.index)
+            y_test_orig_series = pd.Series(y_test_orig, index=df.index)
+            y_pred_orig = final_model.predict(X_test_orig_df)
 
             # Create demographic parity analysis
-            senior_mask = df.iloc[y_test_orig.index]['SeniorCitizen'] == 1
+            senior_mask = df['SeniorCitizen'] == 1
 
             # Calculate fairness metrics
             senior_pred_rate = y_pred_orig[senior_mask].mean()
@@ -744,8 +747,8 @@ try:
             print(f"- Demographic parity difference: {demographic_parity:.4f}")
 
             # Equal opportunity analysis
-            senior_tpr = recall_score(y_test_orig[senior_mask], y_pred_orig[senior_mask], zero_division=0)
-            non_senior_tpr = recall_score(y_test_orig[~senior_mask], y_pred_orig[~senior_mask], zero_division=0)
+            senior_tpr = recall_score(y_test_orig_series[senior_mask], y_pred_orig[senior_mask], zero_division=0)
+            non_senior_tpr = recall_score(y_test_orig_series[~senior_mask], y_pred_orig[~senior_mask], zero_division=0)
             equalized_odds = abs(senior_tpr - non_senior_tpr)
 
             print(f"Equal Opportunity Analysis:")
@@ -760,6 +763,7 @@ try:
 
 except Exception as e:
     print(f"⚠ Fairness analysis failed: {str(e)}")
+
 
 # === STEP 12: COUNTERFACTUAL EXPLANATIONS (DICE-ML) ===
 print("\n" + "="*50)
@@ -797,6 +801,7 @@ except Exception as e:
     print(f"⚠ Counterfactual explanation failed: {str(e)}")
     print("Continuing without counterfactual explanations...")
 
+
 # === STEP 13: COMPREHENSIVE RESULTS SUMMARY ===
 print("\n" + "="*50)
 print("STEP 13: COMPREHENSIVE RESULTS SUMMARY")
@@ -823,8 +828,7 @@ for key, value in summary_data.items():
 
 # Save all results to Excel
 try:
-    with pd.ExcelWriter(f"{OUTPUT_DIR}/comprehensive_results.xlsx", engine='openpyxl') as writer:
-        # Model comparison
+    with pd.ExcelWriter(f"{OUTPUT_DIR}/comprehensive_results.xlsx", engine='xlsxwriter') as writer:
         if cv_results:
             model_comparison = pd.DataFrame({
                 'Model': list(cv_results.keys()),

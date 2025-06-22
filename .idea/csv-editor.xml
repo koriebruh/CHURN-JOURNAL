@@ -17,6 +17,20 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\rill_final_enhanced\data\cv_metrics_per_fold.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\rill_final_enhanced\data\feature_importance.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\rill_final_enhanced\data\hyperparameter_tuning_results.csv">
           <value>
             <Attribute>

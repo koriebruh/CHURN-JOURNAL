@@ -1,35 +1,35 @@
 feature,importance
-Engagement_Score,1593
-tenure,1411
-TotalCharges,1204
-MonthlyCharges,1184
-Churn_Risk_Score,608
-Service_Utilization,454
-gender_Male,382
-OnlineBackup_Yes,288
-Partner_Yes,285
-PaperlessBilling_Yes,278
-MultipleLines_Yes,255
-OnlineSecurity_Yes,248
-Dependents_Yes,231
-StreamingMovies_Yes,222
-TechSupport_Yes,211
-InternetService_Fiber optic,188
-StreamingTV_Yes,180
-DeviceProtection_Yes,171
-PaymentMethod_Electronic check,170
-SeniorCitizen,170
-Contract_One year,155
-PaymentMethod_Credit card (automatic),148
-Contract_Two year,142
-Payment_Reliability,127
-PaymentMethod_Mailed check,96
-PhoneService_Yes,72
-InternetService_No,43
-MultipleLines_No phone service,7
-DeviceProtection_No internet service,0
-OnlineBackup_No internet service,0
-TechSupport_No internet service,0
-OnlineSecurity_No internet service,0
-StreamingTV_No internet service,0
-StreamingMovies_No internet service,0
+Contract_Two year,0.39222902
+Contract_One year,0.16716306
+InternetService_Fiber optic,0.10874466
+InternetService_No,0.055163074
+StreamingMovies_Yes,0.03011586
+PhoneService_Yes,0.018942615
+PaperlessBilling_Yes,0.017577296
+OnlineSecurity_Yes,0.015942449
+TechSupport_Yes,0.014862366
+MultipleLines_Yes,0.013960171
+StreamingTV_Yes,0.013694193
+gender_Male,0.012925287
+Partner_Yes,0.012190506
+Churn_Risk_Score,0.01199653
+tenure,0.01191069
+Dependents_Yes,0.011462944
+OnlineBackup_Yes,0.011368453
+DeviceProtection_Yes,0.010917334
+SeniorCitizen,0.00906508
+PaymentMethod_Electronic check,0.008751781
+PaymentMethod_Credit card (automatic),0.008691926
+Service_Utilization,0.008507815
+TotalCharges,0.0069947173
+Payment_Reliability,0.0069505484
+PaymentMethod_Mailed check,0.006845345
+MonthlyCharges,0.006560888
+Engagement_Score,0.0064654197
+OnlineBackup_No internet service,0.0
+DeviceProtection_No internet service,0.0
+OnlineSecurity_No internet service,0.0
+TechSupport_No internet service,0.0
+MultipleLines_No phone service,0.0
+StreamingTV_No internet service,0.0
+StreamingMovies_No internet service,0.0
