@@ -1,0 +1,35 @@
+feature,importance
+Engagement_Score,1593
+tenure,1411
+TotalCharges,1204
+MonthlyCharges,1184
+Churn_Risk_Score,608
+Service_Utilization,454
+gender_Male,382
+OnlineBackup_Yes,288
+Partner_Yes,285
+PaperlessBilling_Yes,278
+MultipleLines_Yes,255
+OnlineSecurity_Yes,248
+Dependents_Yes,231
+StreamingMovies_Yes,222
+TechSupport_Yes,211
+InternetService_Fiber optic,188
+StreamingTV_Yes,180
+DeviceProtection_Yes,171
+PaymentMethod_Electronic check,170
+SeniorCitizen,170
+Contract_One year,155
+PaymentMethod_Credit card (automatic),148
+Contract_Two year,142
+Payment_Reliability,127
+PaymentMethod_Mailed check,96
+PhoneService_Yes,72
+InternetService_No,43
+MultipleLines_No phone service,7
+DeviceProtection_No internet service,0
+OnlineBackup_No internet service,0
+TechSupport_No internet service,0
+OnlineSecurity_No internet service,0
+StreamingTV_No internet service,0
+StreamingMovies_No internet service,0
