@@ -1,35 +1,35 @@
 feature,importance
-Contract_Two year,0.39222902
-Contract_One year,0.16716306
-InternetService_Fiber optic,0.10874466
-InternetService_No,0.055163074
-StreamingMovies_Yes,0.03011586
-PhoneService_Yes,0.018942615
-PaperlessBilling_Yes,0.017577296
-OnlineSecurity_Yes,0.015942449
-TechSupport_Yes,0.014862366
-MultipleLines_Yes,0.013960171
-StreamingTV_Yes,0.013694193
-gender_Male,0.012925287
-Partner_Yes,0.012190506
-Churn_Risk_Score,0.01199653
-tenure,0.01191069
-Dependents_Yes,0.011462944
-OnlineBackup_Yes,0.011368453
-DeviceProtection_Yes,0.010917334
-SeniorCitizen,0.00906508
-PaymentMethod_Electronic check,0.008751781
-PaymentMethod_Credit card (automatic),0.008691926
-Service_Utilization,0.008507815
-TotalCharges,0.0069947173
-Payment_Reliability,0.0069505484
-PaymentMethod_Mailed check,0.006845345
-MonthlyCharges,0.006560888
-Engagement_Score,0.0064654197
-OnlineBackup_No internet service,0.0
-DeviceProtection_No internet service,0.0
-OnlineSecurity_No internet service,0.0
+Contract_Two year,0.16523253666799917
+tenure,0.09748734068750184
+Contract_One year,0.09119431032236718
+InternetService_Fiber optic,0.08789201493485425
+PaperlessBilling_Yes,0.049108407065229384
+Churn_Risk_Score,0.04382938437571415
+gender_Male,0.04243863981305955
+StreamingMovies_Yes,0.03885028183695483
+MultipleLines_Yes,0.03738536521971948
+PaymentMethod_Electronic check,0.035635542487078155
+OnlineSecurity_Yes,0.031880644743720155
+StreamingTV_Yes,0.03140728454415398
+TechSupport_Yes,0.03087617350380043
+Partner_Yes,0.030158395561527825
+MonthlyCharges,0.027279017963780818
+Engagement_Score,0.0267423799558632
+TotalCharges,0.018918932493910454
+Dependents_Yes,0.01747324720502875
+OnlineBackup_Yes,0.016478257201425314
+Service_Utilization,0.015820810787715134
+DeviceProtection_Yes,0.0149564154889756
+InternetService_No,0.010832423040906331
+SeniorCitizen,0.009772622401450014
+Payment_Reliability,0.007876845448582949
+PaymentMethod_Mailed check,0.007677878877458334
+PhoneService_Yes,0.007508137613725288
+PaymentMethod_Credit card (automatic),0.005286709757497505
 TechSupport_No internet service,0.0
-MultipleLines_No phone service,0.0
 StreamingTV_No internet service,0.0
+DeviceProtection_No internet service,0.0
 StreamingMovies_No internet service,0.0
+OnlineBackup_No internet service,0.0
+OnlineSecurity_No internet service,0.0
+MultipleLines_No phone service,0.0

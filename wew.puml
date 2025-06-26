@@ -1,0 +1,230 @@
+@startuml
+!theme plain
+skinparam backgroundColor #F8F9FA
+skinparam activity {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+    FontSize 11
+    FontColor #263238
+}
+skinparam decision {
+    BackgroundColor #FFF3E0
+    BorderColor #F57C00
+    FontSize 11
+    FontColor #263238
+}
+skinparam note {
+    BackgroundColor #F1F8E9
+    BorderColor #689F38
+    FontSize 10
+}
+
+title **Customer Churn Prediction Research Methodology**
+
+start
+
+:📊 **STEP 1: Data Collection & Loading**
+・Load Telco Customer Churn Dataset
+・Validate dataset integrity
+・Check for file existence and format;
+
+note right
+**Dataset Requirements:**
+• Customer demographics
+• Service usage patterns
+• Billing information
+• Churn labels (target variable)
+end note
+
+:🔍 **STEP 2: Exploratory Data Analysis**
+・Analyze dataset structure and dimensions
+・Examine missing values distribution
+・Investigate target variable balance
+・Generate descriptive statistics;
+
+note left
+**Key Metrics:**
+• Dataset shape: samples × features
+• Missing value percentage
+• Class distribution (Churn vs No-Churn)
+• Feature data types
+end note
+
+:🛠️ **STEP 3: Data Preprocessing**
+・Normalize column names
+・Handle missing values (TotalCharges)
+・Convert data types appropriately
+・Remove irrelevant features (customerID);
+
+:⚙️ **STEP 4: Feature Engineering**
+・Create Engagement_Score
+・Develop Churn_Risk_Score
+・Calculate Service_Utilization
+・Generate Payment_Reliability indicator
+・Apply one-hot encoding for categorical variables;
+
+note right
+**New Features:**
+• Engagement_Score = tenure × MonthlyCharges / (TotalCharges + 1)
+• Churn_Risk_Score = (tenure < 12) × MonthlyCharges
+• Service_Utilization = count of active services
+• Payment_Reliability = automatic payment flag
+end note
+
+:📈 **STEP 5: Feature Analysis**
+・Generate correlation matrix
+・Analyze feature relationships
+・Identify multicollinearity issues
+・Create visualization plots;
+
+:⚖️ **STEP 6: Data Balancing**
+・Apply StandardScaler for normalization
+・Compare multiple sampling techniques:
+  • SMOTE (Synthetic Minority Oversampling)
+  • SMOTEENN (SMOTE + Edited Nearest Neighbours)
+  • ADASYN (Adaptive Synthetic Sampling)
+  • RandomUnderSampler
+・Select optimal balancing method;
+
+note left
+**Imbalance Handling:**
+• Compare 4 different techniques
+• Evaluate impact on class distribution
+• Select SMOTE as primary method
+• Maintain stratification in splits
+end note
+
+:🔄 **STEP 7: Train-Test Split**
+・Stratified split (75% train, 25% test)
+・Maintain class distribution
+・Apply random seed for reproducibility;
+
+:🤖 **STEP 8: Model Selection & Training**
+・Define 10 ML algorithms:
+  • Decision Tree
+  • Gradient Boosting Machine
+  • XGBoost
+  • Random Forest
+  • Logistic Regression
+  • Support Vector Machine
+  • Neural Network (MLP)
+  • AdaBoost
+  • LightGBM
+  • CatBoost;
+
+:🎯 **STEP 9: Hyperparameter Optimization**
+・Apply Bayesian Optimization (Optuna)
+・Define parameter search spaces
+・Optimize for ROC-AUC score
+・Use time-limited optimization;
+
+note right
+**Optimization Strategy:**
+• Bayesian approach using Optuna
+• ROC-AUC as optimization metric
+• Time-limited trials per model
+• Cross-validation during optimization
+end note
+
+:📊 **STEP 10: Cross-Validation Evaluation**
+・5-fold Stratified Cross-Validation
+・Calculate multiple metrics:
+  • ROC-AUC
+  • Accuracy
+  • Precision
+  • Recall
+  • F1-score
+・Generate performance distributions;
+
+:📈 **STEP 11: Statistical Significance Testing**
+・Wilcoxon Signed-Rank Test
+・Friedman Test for multiple comparisons
+・Identify best performing model
+・Calculate p-values for significance;
+
+note left
+**Statistical Tests:**
+• Wilcoxon: pairwise model comparison
+• Friedman: overall model ranking
+• α = 0.05 significance level
+• Multiple comparison correction
+end note
+
+:🏆 **STEP 12: Best Model Selection**
+・Select model with highest CV ROC-AUC
+・Train final model on full training set
+・Generate comprehensive test predictions;
+
+if (Model supports feature importance?) then (yes)
+  :📊 **Feature Importance Analysis**
+  ・Extract feature importances
+  ・Rank features by contribution
+  ・Generate importance visualizations;
+else (no)
+  :⚠️ Skip feature importance;
+endif
+
+:🔍 **STEP 13: SHAP Analysis**
+・Generate SHAP explanations
+・Create summary plots
+・Analyze feature contributions
+・Understand model decisions;
+
+note right
+**SHAP Analysis:**
+• TreeExplainer for tree-based models
+• KernelExplainer for other models
+• Global and local explanations
+• Feature interaction analysis
+end note
+
+:⚖️ **STEP 14: Bias & Fairness Analysis**
+・Demographic Parity Assessment
+・Equal Opportunity Analysis
+・Calculate fairness metrics
+・Identify potential biases;
+
+note left
+**Fairness Metrics:**
+• Demographic parity difference
+• Equalized odds difference
+• True Positive Rate by group
+• Bias detection and mitigation
+end note
+
+:🔄 **STEP 15: Counterfactual Explanations**
+・Generate counterfactual examples using DICE-ML
+・Identify minimal changes for outcome flip
+・Provide actionable insights;
+
+:📋 **STEP 16: Model Evaluation**
+・Confusion Matrix Analysis
+・ROC Curve Generation
+・Precision-Recall Curve
+・Calibration Curve Assessment
+・Calculate comprehensive metrics;
+
+:📊 **STEP 17: Results Compilation**
+・Generate comprehensive Excel report
+・Create visualization suite (12+ plots)
+・Save model artifacts for deployment
+・Document methodology and findings;
+
+:💼 **STEP 18: Business Recommendations**
+・Translate technical results to business insights
+・Provide deployment guidelines
+・Suggest monitoring strategies
+・Recommend business actions;
+
+note right
+**Deliverables:**
+• Trained model artifacts
+• Performance evaluation report
+• Feature importance rankings
+• Business recommendation document
+• Deployment-ready pipeline
+end note
+
+stop
+
+@enduml

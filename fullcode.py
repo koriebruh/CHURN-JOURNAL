@@ -351,11 +351,11 @@ for name in models_config.keys():
         study = optuna.create_study(direction='maximize')
        # Timeout + trial untuk semua model (light tuning)
         if name in ["DecisionTree", "LogisticRegression"]:
-            study.optimize(lambda trial: objective(trial, name, X_train, y_train), n_trials=5, timeout=60)
+            study.optimize(lambda trial: objective(trial, name, X_train, y_train), n_trials=10, timeout=120)
         elif name in ["GBM", "RandomForest", "AdaBoost"]:
-            study.optimize(lambda trial: objective(trial, name, X_train, y_train), n_trials=5, timeout=120)
+            study.optimize(lambda trial: objective(trial, name, X_train, y_train), n_trials=10, timeout=240)
         elif name in ["XGBoost", "LightGBM", "CatBoost", "SVC", "NeuralNet"]:
-            study.optimize(lambda trial: objective(trial, name, X_train, y_train), n_trials=5, timeout=180)
+            study.optimize(lambda trial: objective(trial, name, X_train, y_train), n_trials=15, timeout=360)
 
         best_params = study.best_params
         model = models_config[name]["model"]
@@ -624,19 +624,27 @@ plt.show()
 joblib.dump(final_model, f"{OUTPUT_DIR}/models/final_model.pkl")
 print("✓ Final model saved")
 
-
 # === STEP 9: FEATURE IMPORTANCE ANALYSIS ===
 print("\n" + "="*50)
 print("STEP 9: FEATURE IMPORTANCE ANALYSIS")
 print("="*50)
 
-# Feature importance (if available)
-if hasattr(final_model, 'feature_importances_'):
-    importances = final_model.feature_importances_
-    feature_names = X.columns
+# Prepare X_test_df for consistency
+X_test_df = pd.DataFrame(X_test, columns=X.columns)
+print("X_test_df columns:", X_test_df.columns.tolist())
+print("X_test_df shape:", X_test_df.shape)
+print(f"Model used: {type(final_model).__name__}")
+
+try:
+    # Use SHAP for feature importance
+    import shap
+    explainer = shap.TreeExplainer(final_model)
+    shap_values = explainer.shap_values(X_test_df)
+    shap_importance = np.abs(shap_values).mean(axis=0)
+    total_importance = shap_importance.sum()
     importance_df = pd.DataFrame({
-        'feature': feature_names,
-        'importance': importances
+        'feature': X_test_df.columns,
+        'importance': shap_importance / total_importance  # Normalized importance
     }).sort_values('importance', ascending=False)
 
     print("Top 10 Most Important Features:")
@@ -648,8 +656,8 @@ if hasattr(final_model, 'feature_importances_'):
     top_features = importance_df.head(15)
     plt.barh(range(len(top_features)), top_features['importance'], color='skyblue')
     plt.yticks(range(len(top_features)), top_features['feature'])
-    plt.xlabel('Feature Importance')
-    plt.title(f'Top 15 Feature Importances - {best_model}', fontweight='bold')
+    plt.xlabel('Feature Importance (Normalized)')
+    plt.title(f'Top 15 Feature Importances - {type(final_model).__name__}', fontweight='bold')
     plt.gca().invert_yaxis()
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/plots/feature_importance.png", dpi=300, bbox_inches='tight')
@@ -658,49 +666,58 @@ if hasattr(final_model, 'feature_importances_'):
     # Save feature importance
     importance_df.to_csv(f"{OUTPUT_DIR}/data/feature_importance.csv", index=False)
     print("✓ Feature importance saved")
-else:
-    print("⚠ Selected model doesn't support feature importance")
+except Exception as e:
+    print(f"⚠ Feature importance analysis failed: {str(e)}")
+    print("Continuing without feature importance...")
     importance_df = pd.DataFrame()
 
-
-# === STEP 10: SHAP ANALYSIS ===
+ # === STEP 10: SHAP ANALYSIS ===
 print("\n" + "="*50)
 print("STEP 10: SHAP ANALYSIS")
 print("="*50)
 try:
     print("Generating SHAP explanations...")
-    # Create SHAP explainer
-    if best_model.__class__.__name__ in ['XGBClassifier', 'LGBMClassifier', 'GradientBoostingClassifier', 'RandomForestClassifier']:
-        explainer = shap.TreeExplainer(final_model, feature_names=X.columns)
-        shap_values = explainer.shap_values(X_test[:500])  # Use subset for speed
-
-        # Handle binary classification SHAP values
-        if isinstance(shap_values, list):
-            shap_values_plot = shap_values[1]  # Positive class for binary classification
-        else:
-            shap_values_plot = shap_values
-
+    if not isinstance(X_test, pd.DataFrame):
+        X_test_df = pd.DataFrame(X_test, columns=X.columns)
     else:
-        # For other models, use KernelExplainer
-        explainer = shap.KernelExplainer(final_model.predict_proba, X_train[:100])
-        shap_values = explainer.shap_values(X_test[:100])
-        if isinstance(shap_values, list):
-            shap_values_plot = shap_values[1]
-        else:
-            shap_values_plot = shap_values
+        X_test_df = X_test
 
-    # SHAP Summary Plot
+    print("X_test_df shape:", X_test_df.shape)
+    print("Model used:", type(final_model).__name__)
+
+    # Prepare training data for KernelExplainer (if needed)
+    if not 'X_train' in globals():
+        print("⚠ X_train not found, using X_test_df[:100] as fallback for KernelExplainer.")
+        X_train_df = X_test_df[:100].copy()
+    else:
+        if not isinstance(X_train, pd.DataFrame):
+            X_train_df = pd.DataFrame(X_train, columns=X.columns)
+        else:
+            X_train_df = X_train
+
+    if best_model.__class__.__name__ in ['LGBMClassifier', 'XGBClassifier', 'GradientBoostingClassifier', 'RandomForestClassifier', 'CatBoostClassifier']:
+        explainer = shap.TreeExplainer(final_model, feature_names=X.columns.tolist())
+        shap_values = explainer.shap_values(X_test_df[:500], check_additivity=False)
+        shap_values_plot = shap_values[1] if isinstance(shap_values, list) else shap_values
+    else:
+        explainer = shap.KernelExplainer(
+            lambda x: final_model.predict_proba(x)[:, 1],
+            X_train_df[:100],
+            feature_names=X.columns.tolist()
+        )
+        shap_values = explainer.shap_values(X_test_df[:100])
+        shap_values_plot = shap_values[1] if isinstance(shap_values, list) else shap_values
+
     plt.figure(figsize=(10, 8))
-    shap.summary_plot(shap_values_plot, X_test[:len(shap_values_plot)],
-                     feature_names=X.columns, show=False)
+    shap.summary_plot(shap_values_plot, X_test_df[:len(shap_values_plot)],
+                     feature_names=X.columns.tolist(), show=False)
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/plots/shap_summary.png", dpi=300, bbox_inches='tight')
     plt.show()
 
-    # SHAP Bar Plot
     plt.figure(figsize=(10, 6))
-    shap.summary_plot(shap_values_plot, X_test[:len(shap_values_plot)],
-                     feature_names=X.columns, plot_type="bar", show=False)
+    shap.summary_plot(shap_values_plot, X_test_df[:len(shap_values_plot)],
+                     feature_names=X.columns.tolist(), plot_type="bar", show=False)
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/plots/shap_bar.png", dpi=300, bbox_inches='tight')
     plt.show()
@@ -710,6 +727,7 @@ try:
 except Exception as e:
     print(f"⚠ SHAP analysis failed: {str(e)}")
     print("Continuing without SHAP analysis...")
+
 
 
 # === STEP 11: BIAS AND FAIRNESS ANALYSIS ===
@@ -765,6 +783,10 @@ except Exception as e:
     print(f"⚠ Fairness analysis failed: {str(e)}")
 
 
+import dice_ml
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 # === STEP 12: COUNTERFACTUAL EXPLANATIONS (DICE-ML) ===
 print("\n" + "="*50)
 print("STEP 12: COUNTERFACTUAL EXPLANATIONS")
@@ -774,14 +796,20 @@ try:
     print("Generating counterfactual explanations...")
 
     # Prepare data for DICE
-    # Convert back to pandas DataFrame
     X_test_df = pd.DataFrame(X_test, columns=X.columns)
 
+    # Convert back to pandas DataFrame and ensure all features are present
+    data_for_dice = pd.DataFrame(X_scaled_res, columns=X.columns)
+    data_for_dice['target'] = y_res  # Add target column
+
+    # Identify continuous features (numerical columns only)
+    continuous_features = data_for_dice.select_dtypes(include=['float64', 'float32', 'int64', 'int32']).columns.tolist()
+    continuous_features = [f for f in continuous_features if f != 'target']  # Exclude target
+
     # Create DICE data object
-    dice_data = dice_ml.Data(dataframe=pd.concat([pd.DataFrame(X_scaled_res, columns=X.columns),
-                                                 pd.Series(y_res, name='Churn')], axis=1),
-                            continuous_features=X.columns.tolist(),
-                            outcome_name='Churn')
+    dice_data = dice_ml.Data(dataframe=data_for_dice,
+                            continuous_features=continuous_features,
+                            outcome_name='target')
 
     # Create DICE model
     dice_model = dice_ml.Model(model=final_model, backend="sklearn")
@@ -789,13 +817,45 @@ try:
     # Create DICE explainer
     dice_explainer = dice_ml.Dice(dice_data, dice_model, method="random")
 
-    # Generate counterfactuals for a few test instances
-    query_instances = X_test_df.head(3)
-    counterfactuals = dice_explainer.generate_counterfactuals(query_instances, total_CFs=3)
+    # Scale query instances to match data_for_dice
+    from sklearn.preprocessing import StandardScaler
+    scaler = StandardScaler()
+    X_test_scaled = scaler.fit_transform(X_test)  # Pastikan scaler sesuai dengan X_scaled_res
+    query_instances = pd.DataFrame(X_test_scaled, columns=X.columns).head(3)
 
-    print("✓ Counterfactual explanations generated")
-    print("Sample counterfactual explanations:")
-    print(counterfactuals.cf_examples_list[0].final_cfs_df.head())
+    # Generate counterfactuals for a few test instances
+    counterfactuals = dice_explainer.generate_counterfactuals(query_instances, total_CFs=2, desired_class=1)
+
+    # Display results
+    print("\n✓ Counterfactual explanations generated")
+    print("\nOriginal instance (scaled):")
+    print(query_instances.iloc[0])
+    print("\nCounterfactual examples:")
+    if hasattr(counterfactuals.cf_examples_list[0], 'final_cfs_df'):
+        cf_df = counterfactuals.cf_examples_list[0].final_cfs_df
+        print(cf_df.head())
+    else:
+        print("No counterfactual examples found")
+
+    # Visualization for journal
+    plt.figure(figsize=(12, 6))
+    original_instance = query_instances.iloc[0]
+    data_to_plot = pd.DataFrame({
+        'Feature': original_instance.index,
+        'Original': original_instance.values,
+        'Counterfactual_1': cf_df.iloc[0].values[:-1],  # Exclude target
+        'Counterfactual_2': cf_df.iloc[1].values[:-1]   # Exclude target
+    })
+    data_melted = data_to_plot.melt(id_vars='Feature', var_name='Type', value_name='Value')
+    sns.barplot(x='Feature', y='Value', hue='Type', data=data_melted)
+    plt.xticks(rotation=90)
+    plt.title('Comparison of Original and Counterfactual Instances', fontsize=14)
+    plt.xlabel('Features', fontsize=12)
+    plt.ylabel('Scaled Values', fontsize=12)
+    plt.legend(title='Instance Type')
+    plt.tight_layout()
+    plt.savefig(f'{OUTPUT_DIR}/plots/counterfactual_comparison_journal.png', dpi=300, bbox_inches='tight')
+    plt.show()
 
 except Exception as e:
     print(f"⚠ Counterfactual explanation failed: {str(e)}")
@@ -858,6 +918,7 @@ try:
 
 except Exception as e:
     print(f"⚠ Error saving to Excel: {str(e)}")
+
 
 # === STEP 14: FINAL RECOMMENDATIONS ===
 print("\n" + "="*50)
