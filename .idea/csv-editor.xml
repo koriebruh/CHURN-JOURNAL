@@ -45,6 +45,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\rill_final_enhanced\data\resampled_target_distribution.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
       </map>
     </option>
   </component>
