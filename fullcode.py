@@ -128,10 +128,15 @@ plt.savefig(f"{OUTPUT_DIR}/plots/target_distribution.png", dpi=300, bbox_inches=
 plt.show()
 
 
+
 # === STEP 3: FEATURE ENGINEERING ===
 print("\n" + "="*50)
 print("STEP 3: FEATURE ENGINEERING")
 print("="*50)
+
+# Save a copy of the dataset before feature engineering for comparative analysis
+df_no_fe = df.copy()
+print("✓ Saved dataset copy without feature engineering")
 
 # Check if required columns exist before feature engineering
 required_cols = ['tenure', 'MonthlyCharges', 'TotalCharges']
@@ -178,6 +183,25 @@ else:
 
 print(f"Features after encoding: {df_encoded.shape[1] - 1}")
 
+
+#### TAMBAHAN: Prepare dataset without feature engineering
+categorical_features_no_fe = df_no_fe.select_dtypes(include=['object']).columns.tolist()
+if 'Churn' in categorical_features_no_fe:
+    categorical_features_no_fe.remove('Churn')
+
+if categorical_features_no_fe:
+    df_encoded_no_fe = pd.get_dummies(df_no_fe, columns=categorical_features_no_fe, drop_first=True)
+    print(f"✓ One-hot encoding completed for dataset without feature engineering")
+else:
+    df_encoded_no_fe = df_no_fe.copy()
+    print("✓ No categorical features to encode for dataset without feature engineering")
+
+# TAMBAHAN: Prepare features and target for no feature engineering
+X_no_fe = df_encoded_no_fe.drop("Churn", axis=1)
+y_no_fe = (df_encoded_no_fe["Churn"] == "Yes").astype(int)
+print(f"Final feature matrix shape (without FE): {X_no_fe.shape}")
+####
+
 # Prepare features and target
 X = df_encoded.drop("Churn", axis=1)
 y = (df_encoded["Churn"] == "Yes").astype(int)
@@ -194,6 +218,7 @@ if X.shape[1] > 1:
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/plots/correlation_matrix.png", dpi=300, bbox_inches='tight')
     plt.show()
+
 
 
 # === STEP 4: DATA SCALING AND SPLITTING ===
@@ -250,6 +275,104 @@ print(f"Training set shape: {X_train.shape}")
 print(f"Testing set shape: {X_test.shape}")
 print(f"Training set class distribution: {np.bincount(y_train)}")
 print(f"Testing set class distribution: {np.bincount(y_test)}")
+
+# TAMBAHAN: Feature scaling for dataset without feature engineering
+X_scaled_no_fe = scaler.fit_transform(X_no_fe)
+print("✓ Feature scaling completed for dataset without feature engineering")
+
+# TAMBAHAN: Train-test split for no feature engineering
+X_train_no_fe, X_test_no_fe, y_train_no_fe, y_test_no_fe = train_test_split(
+    X_scaled_no_fe, y_no_fe, stratify=y_no_fe, test_size=0.25, random_state=RANDOM_SEED
+)
+print(f"Training set shape (No FE): {X_train_no_fe.shape}")
+print(f"Testing set shape (No FE): {X_test_no_fe.shape}")
+
+# TAMBAHAN: Train-test split for feature engineering without SMOTE
+X_train_fe, X_test_fe, y_train_fe, y_test_fe = train_test_split(
+    X_scaled, y, stratify=y, test_size=0.25, random_state=RANDOM_SEED
+)
+print(f"Training set shape (FE only): {X_train_fe.shape}")
+print(f"Testing set shape (FE only): {X_test_fe.shape}")
+
+
+# === STEP 4.3: Visualize target distribution after SMOTE ===
+print("\n" + "="*50)
+print("STEP 4.3: VISUALIZE TARGET DISTRIBUTION AFTER SMOTE")
+print("="*50)
+
+# Create target distribution after SMOTE (sama seperti Step 2)
+# Convert numeric to text labels to match Step 2 format
+y_res_labels = pd.Series(['No' if x == 0 else 'Yes' for x in y_res])
+target_dist = y_res_labels.value_counts()
+print(f"\nTarget Variable Distribution After SMOTE:")
+for label, count in target_dist.items():
+    percentage = (count / len(y_res)) * 100
+    print(f"- {label}: {count} ({percentage:.2f}%)")
+
+# Create class distribution plot (identik dengan Step 2)
+plt.figure(figsize=(8, 6))
+target_dist.plot(kind='bar', color=['skyblue', 'lightcoral'])
+plt.title('Target Distribution After SMOTE', fontsize=14, fontweight='bold')
+plt.xlabel('Churn Status')
+plt.ylabel('Count')
+plt.xticks(rotation=0)
+for i, v in enumerate(target_dist.values):
+    plt.text(i, v + 50, str(v), ha='center', fontweight='bold')
+plt.tight_layout()
+plt.savefig(f"{OUTPUT_DIR}/plots/resampled_target_distribution.png", dpi=300, bbox_inches='tight')
+plt.show()
+
+# === STEP 4.5: COMPARATIVE MODEL EVALUATION ===
+print("\n" + "="*50)
+print("STEP 4.5: COMPARATIVE MODEL EVALUATION")
+print("="*50)
+
+# Define function to evaluate model
+def evaluate_model(model, X_train, y_train, X_test, y_test, scenario_name):
+    try:
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        y_pred_proba = model.predict_proba(X_test)[:, 1]
+
+        metrics = {
+            'Scenario': scenario_name,
+            'Accuracy': accuracy_score(y_test, y_pred),
+            'Precision': precision_score(y_test, y_pred, zero_division=0),
+            'Recall': recall_score(y_test, y_pred, zero_division=0),
+            'F1': f1_score(y_test, y_pred, zero_division=0),
+            'ROC_AUC': roc_auc_score(y_test, y_pred_proba)
+        }
+
+        # Confusion Matrix
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                    xticklabels=['No Churn', 'Churn'],
+                    yticklabels=['No Churn', 'Churn'])
+        plt.title(f'Confusion Matrix - {scenario_name}', fontweight='bold')
+        plt.ylabel('Actual')
+        plt.xlabel('Predicted')
+        plt.tight_layout()
+        plt.savefig(f"{OUTPUT_DIR}/plots/confusion_matrix_{scenario_name.lower().replace(' ', '_')}.png", dpi=300, bbox_inches='tight')
+        plt.show()
+
+        return metrics
+    except Exception as e:
+        print(f"⚠ Error evaluating {scenario_name}: {str(e)}")
+        return None
+
+# Placeholder for best model (to be determined after tuning)
+comparative_results = []
+
+# Define scenarios
+scenarios = [
+    ('No Feature Engineering', X_train_no_fe, y_train_no_fe, X_test_no_fe, y_test_no_fe),
+    ('Feature Engineering', X_train_fe, y_train_fe, X_test_fe, y_test_fe),
+    ('Feature Engineering + SMOTE', X_train, y_train, X_test, y_test)
+]
+
+# Note: Actual evaluation will be done after selecting the best model in Step 5
+print("✓ Scenarios defined for comparative evaluation")
 
 
 # === STEP 5: MODEL DEFINITION AND HYPERPARAMETER TUNING ===
@@ -373,6 +496,77 @@ for name in models_config.keys():
 tuning_df = pd.DataFrame(tuning_results)
 tuning_df.to_csv(f"{OUTPUT_DIR}/data/hyperparameter_tuning_results.csv", index=False)
 print("✓ Hyperparameter tuning results saved")
+
+# TAMBAHAN: Select best model for comparative evaluation
+best_model_name = max(tuned_models, key=lambda k: tuning_df[tuning_df['Model'] == k]['Best_Score'].iloc[0])
+best_model = tuned_models[best_model_name]
+print(f"Selected best model for comparative evaluation: {best_model_name}")
+
+# TAMBAHAN: Evaluate best model on all scenarios
+print("Evaluating best model on different scenarios...")
+comparative_results = []  # Inisialisasi di sini agar tersedia untuk Langkah 13
+
+# Define scenarios (assuming these variables are defined in Step 4)
+scenarios = [
+    ('No Feature Engineering', X_train_no_fe, y_train_no_fe, X_test_no_fe, y_test_no_fe),
+    ('Feature Engineering', X_train_fe, y_train_fe, X_test_fe, y_test_fe),
+    ('Feature Engineering + SMOTE', X_train, y_train, X_test, y_test)
+]
+
+for scenario_name, X_tr, y_tr, X_te, y_te in scenarios:
+    try:
+        best_model.fit(X_tr, y_tr)
+        y_pred = best_model.predict(X_te)
+        y_pred_proba = best_model.predict_proba(X_te)[:, 1]
+
+        metrics = {
+            'Scenario': scenario_name,
+            'Accuracy': accuracy_score(y_te, y_pred),
+            'Precision': precision_score(y_te, y_pred, zero_division=0),
+            'Recall': recall_score(y_te, y_pred, zero_division=0),
+            'F1': f1_score(y_te, y_pred, zero_division=0),
+            'ROC_AUC': roc_auc_score(y_te, y_pred_proba)
+        }
+
+        # Confusion Matrix
+        cm = confusion_matrix(y_te, y_pred)
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                    xticklabels=['No Churn', 'Churn'],
+                    yticklabels=['No Churn', 'Churn'])
+        plt.title(f'Confusion Matrix - {scenario_name}', fontweight='bold')
+        plt.ylabel('Actual')
+        plt.xlabel('Predicted')
+        plt.tight_layout()
+        plt.savefig(f"{OUTPUT_DIR}/plots/confusion_matrix_{scenario_name.lower().replace(' ', '_')}.png", dpi=300, bbox_inches='tight')
+        plt.show()
+
+        comparative_results.append(metrics)
+        print(f"✓ {scenario_name} evaluation completed")
+        print(f"Metrics: {metrics}")
+    except Exception as e:
+        print(f"⚠ Error evaluating {scenario_name}: {str(e)}")
+
+# TAMBAHAN: Save comparative results
+comparative_results_df = pd.DataFrame(comparative_results)
+comparative_results_df.to_csv(f"{OUTPUT_DIR}/data/comparative_model_results.csv", index=False)
+print("✓ Comparative model results saved")
+
+# TAMBAHAN: Visualize comparative results
+plt.figure(figsize=(12, 6))
+metrics_to_plot = ['Accuracy', 'Precision', 'Recall', 'F1', 'ROC_AUC']
+for metric in metrics_to_plot:
+    plt.plot(comparative_results_df['Scenario'], comparative_results_df[metric], marker='o', label=metric)
+plt.title('Model Performance Across Scenarios', fontsize=14, fontweight='bold')
+plt.xlabel('Scenario')
+plt.ylabel('Score')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig(f"{OUTPUT_DIR}/plots/comparative_model_performance.png", dpi=300, bbox_inches='tight')
+plt.show()
+
 
 # === STEP 6: CROSS-VALIDATION EVALUATION ===
 print("\n" + "="*50)
@@ -729,7 +923,6 @@ except Exception as e:
     print("Continuing without SHAP analysis...")
 
 
-
 # === STEP 11: BIAS AND FAIRNESS ANALYSIS ===
 print("\n" + "="*50)
 print("STEP 11: BIAS AND FAIRNESS ANALYSIS")
@@ -786,11 +979,241 @@ except Exception as e:
 import dice_ml
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
+import numpy as np
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.preprocessing import StandardScaler
+import warnings
+warnings.filterwarnings('ignore')
 
-# === STEP 12: COUNTERFACTUAL EXPLANATIONS (DICE-ML) ===
+# === STEP 12: COUNTERFACTUAL EXPLANATIONS WITH BULK EVALUATION ===
 print("\n" + "="*50)
-print("STEP 12: COUNTERFACTUAL EXPLANATIONS")
+print("STEP 12: COUNTERFACTUAL EXPLANATIONS WITH BULK EVALUATION")
 print("="*50)
+
+def evaluate_counterfactual_quality(original_instances, counterfactuals_list, model, feature_names):
+    """
+    Evaluate the quality of counterfactuals using multiple metrics
+    """
+    evaluation_results = {
+        'validity': [],
+        'proximity': [],
+        'diversity': [],
+        'sparsity': [],
+        'feasibility': []
+    }
+
+    for i, cf_list in enumerate(counterfactuals_list):
+        if cf_list is not None and hasattr(cf_list, 'final_cfs_df'):
+            original = original_instances.iloc[i]
+            cfs = cf_list.final_cfs_df
+
+            # Validity: Check if counterfactuals actually flip the prediction
+            original_pred = model.predict(original.values.reshape(1, -1))[0]
+            cf_preds = model.predict(cfs.iloc[:, :-1].values)  # Exclude target column
+            validity = np.mean(cf_preds != original_pred)
+
+            # Proximity: Average L2 distance from original
+            distances = []
+            for _, cf_row in cfs.iterrows():
+                cf_features = cf_row.iloc[:-1].values  # Exclude target
+                distance = np.linalg.norm(original.values - cf_features)
+                distances.append(distance)
+            proximity = np.mean(distances) if distances else float('inf')
+
+            # Diversity: Average pairwise distance between counterfactuals
+            diversity_scores = []
+            cf_features = cfs.iloc[:, :-1].values
+            for j in range(len(cf_features)):
+                for k in range(j+1, len(cf_features)):
+                    diversity_scores.append(np.linalg.norm(cf_features[j] - cf_features[k]))
+            diversity = np.mean(diversity_scores) if diversity_scores else 0
+
+            # Sparsity: Average number of features changed
+            sparsity_scores = []
+            for _, cf_row in cfs.iterrows():
+                cf_features = cf_row.iloc[:-1].values
+                changed_features = np.sum(np.abs(original.values - cf_features) > 1e-6)
+                sparsity_scores.append(changed_features)
+            sparsity = np.mean(sparsity_scores) if sparsity_scores else 0
+
+            # Feasibility: Check if values are within reasonable bounds
+            feasibility = 1.0  # Simplified - in practice, you'd check domain constraints
+
+            evaluation_results['validity'].append(validity)
+            evaluation_results['proximity'].append(proximity)
+            evaluation_results['diversity'].append(diversity)
+            evaluation_results['sparsity'].append(sparsity)
+            evaluation_results['feasibility'].append(feasibility)
+        else:
+            # Handle failed counterfactual generation
+            evaluation_results['validity'].append(0)
+            evaluation_results['proximity'].append(float('inf'))
+            evaluation_results['diversity'].append(0)
+            evaluation_results['sparsity'].append(0)
+            evaluation_results['feasibility'].append(0)
+
+    return evaluation_results
+
+def bulk_counterfactual_analysis(X_test, model, dice_explainer, n_samples=50, n_counterfactuals=3):
+    """
+    Perform bulk counterfactual analysis on multiple test instances
+    """
+    print(f"\nPerforming bulk counterfactual analysis on {n_samples} instances...")
+
+    # Select random sample of test instances
+    sample_indices = np.random.choice(len(X_test), min(n_samples, len(X_test)), replace=False)
+    sample_instances = X_test.iloc[sample_indices]
+
+    counterfactuals_list = []
+    successful_generations = 0
+    failed_generations = 0
+
+    for i, (idx, instance) in enumerate(sample_instances.iterrows()):
+        try:
+            # Generate counterfactuals for this instance
+            query_instance = instance.to_frame().T
+            cf_result = dice_explainer.generate_counterfactuals(
+                query_instance,
+                total_CFs=n_counterfactuals,
+                desired_class=1
+            )
+            counterfactuals_list.append(cf_result.cf_examples_list[0])
+            successful_generations += 1
+
+            if (i + 1) % 10 == 0:
+                print(f"Processed {i + 1}/{len(sample_instances)} instances...")
+
+        except Exception as e:
+            print(f"Failed to generate counterfactuals for instance {i}: {str(e)}")
+            counterfactuals_list.append(None)
+            failed_generations += 1
+
+    print(f"✓ Bulk analysis completed:")
+    print(f"  - Successful generations: {successful_generations}")
+    print(f"  - Failed generations: {failed_generations}")
+    print(f"  - Success rate: {successful_generations/len(sample_instances)*100:.1f}%")
+
+    return sample_instances, counterfactuals_list
+
+def create_comprehensive_visualizations(evaluation_results, sample_instances, counterfactuals_list, OUTPUT_DIR):
+    """
+    Create comprehensive visualizations for bulk counterfactual evaluation
+    """
+    # 1. Quality Metrics Distribution
+    plt.figure(figsize=(20, 12))
+
+    # Subplot 1: Validity Distribution
+    plt.subplot(2, 3, 1)
+    plt.hist(evaluation_results['validity'], bins=20, alpha=0.7, color='skyblue', edgecolor='black')
+    plt.axvline(np.mean(evaluation_results['validity']), color='red', linestyle='--',
+                label=f'Mean: {np.mean(evaluation_results["validity"]):.3f}')
+    plt.title('Counterfactual Validity Distribution', fontsize=12, fontweight='bold')
+    plt.xlabel('Validity Score')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+
+    # Subplot 2: Proximity Distribution
+    plt.subplot(2, 3, 2)
+    proximity_filtered = [p for p in evaluation_results['proximity'] if p != float('inf')]
+    if proximity_filtered:
+        plt.hist(proximity_filtered, bins=20, alpha=0.7, color='lightgreen', edgecolor='black')
+        plt.axvline(np.mean(proximity_filtered), color='red', linestyle='--',
+                    label=f'Mean: {np.mean(proximity_filtered):.3f}')
+    plt.title('Counterfactual Proximity Distribution', fontsize=12, fontweight='bold')
+    plt.xlabel('Average L2 Distance')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+
+    # Subplot 3: Diversity Distribution
+    plt.subplot(2, 3, 3)
+    plt.hist(evaluation_results['diversity'], bins=20, alpha=0.7, color='orange', edgecolor='black')
+    plt.axvline(np.mean(evaluation_results['diversity']), color='red', linestyle='--',
+                label=f'Mean: {np.mean(evaluation_results["diversity"]):.3f}')
+    plt.title('Counterfactual Diversity Distribution', fontsize=12, fontweight='bold')
+    plt.xlabel('Average Pairwise Distance')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+
+    # Subplot 4: Sparsity Distribution
+    plt.subplot(2, 3, 4)
+    plt.hist(evaluation_results['sparsity'], bins=20, alpha=0.7, color='purple', edgecolor='black')
+    plt.axvline(np.mean(evaluation_results['sparsity']), color='red', linestyle='--',
+                label=f'Mean: {np.mean(evaluation_results["sparsity"]):.3f}')
+    plt.title('Counterfactual Sparsity Distribution', fontsize=12, fontweight='bold')
+    plt.xlabel('Number of Changed Features')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+
+    # Subplot 5: Quality Metrics Summary
+    plt.subplot(2, 3, 5)
+    metrics_data = pd.DataFrame({
+        'Metric': ['Validity', 'Proximity', 'Diversity', 'Sparsity'],
+        'Mean': [
+            np.mean(evaluation_results['validity']),
+            np.mean([p for p in evaluation_results['proximity'] if p != float('inf')]),
+            np.mean(evaluation_results['diversity']),
+            np.mean(evaluation_results['sparsity'])
+        ],
+        'Std': [
+            np.std(evaluation_results['validity']),
+            np.std([p for p in evaluation_results['proximity'] if p != float('inf')]),
+            np.std(evaluation_results['diversity']),
+            np.std(evaluation_results['sparsity'])
+        ]
+    })
+
+    x_pos = np.arange(len(metrics_data))
+    plt.bar(x_pos, metrics_data['Mean'], yerr=metrics_data['Std'],
+            capsize=5, alpha=0.7, color=['skyblue', 'lightgreen', 'orange', 'purple'])
+    plt.xticks(x_pos, metrics_data['Metric'], rotation=45)
+    plt.title('Quality Metrics Summary', fontsize=12, fontweight='bold')
+    plt.ylabel('Score')
+    plt.grid(True, alpha=0.3)
+
+    # Subplot 6: Success Rate Pie Chart
+    plt.subplot(2, 3, 6)
+    successful = sum(1 for cf in counterfactuals_list if cf is not None)
+    failed = len(counterfactuals_list) - successful
+    plt.pie([successful, failed], labels=['Successful', 'Failed'],
+            autopct='%1.1f%%', colors=['lightgreen', 'lightcoral'])
+    plt.title('Counterfactual Generation Success Rate', fontsize=12, fontweight='bold')
+
+    plt.tight_layout()
+    plt.savefig(f'{OUTPUT_DIR}/plots/bulk_counterfactual_evaluation.png', dpi=300, bbox_inches='tight')
+    plt.show()
+
+    # 2. Feature Importance Heatmap
+    plt.figure(figsize=(12, 8))
+    feature_changes = []
+
+    for i, cf_list in enumerate(counterfactuals_list):
+        if cf_list is not None and hasattr(cf_list, 'final_cfs_df'):
+            original = sample_instances.iloc[i]
+            cfs = cf_list.final_cfs_df
+
+            for _, cf_row in cfs.iterrows():
+                cf_features = cf_row.iloc[:-1].values
+                changes = np.abs(original.values - cf_features)
+                feature_changes.append(changes)
+
+    if feature_changes:
+        feature_changes_df = pd.DataFrame(feature_changes, columns=sample_instances.columns)
+        feature_importance = feature_changes_df.mean().sort_values(ascending=False)
+
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x=feature_importance.values, y=feature_importance.index, palette='viridis')
+        plt.title('Average Feature Changes in Counterfactuals', fontsize=14, fontweight='bold')
+        plt.xlabel('Average Absolute Change')
+        plt.ylabel('Features')
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.savefig(f'{OUTPUT_DIR}/plots/feature_importance_counterfactuals.png', dpi=300, bbox_inches='tight')
+        plt.show()
 
 try:
     print("Generating counterfactual explanations...")
@@ -818,12 +1241,12 @@ try:
     dice_explainer = dice_ml.Dice(dice_data, dice_model, method="random")
 
     # Scale query instances to match data_for_dice
-    from sklearn.preprocessing import StandardScaler
     scaler = StandardScaler()
-    X_test_scaled = scaler.fit_transform(X_test)  # Pastikan scaler sesuai dengan X_scaled_res
+    X_test_scaled = scaler.fit_transform(X_test)
     query_instances = pd.DataFrame(X_test_scaled, columns=X.columns).head(3)
 
-    # Generate counterfactuals for a few test instances
+    # === ORIGINAL SINGLE INSTANCE ANALYSIS ===
+    print("\n--- Single Instance Analysis ---")
     counterfactuals = dice_explainer.generate_counterfactuals(query_instances, total_CFs=2, desired_class=1)
 
     # Display results
@@ -837,8 +1260,8 @@ try:
     else:
         print("No counterfactual examples found")
 
-    # Visualization for journal
-    plt.figure(figsize=(12, 6))
+    # Original visualization
+    plt.figure(figsize=(14, 6))
     original_instance = query_instances.iloc[0]
     data_to_plot = pd.DataFrame({
         'Feature': original_instance.index,
@@ -847,19 +1270,78 @@ try:
         'Counterfactual_2': cf_df.iloc[1].values[:-1]   # Exclude target
     })
     data_melted = data_to_plot.melt(id_vars='Feature', var_name='Type', value_name='Value')
-    sns.barplot(x='Feature', y='Value', hue='Type', data=data_melted)
-    plt.xticks(rotation=90)
-    plt.title('Comparison of Original and Counterfactual Instances', fontsize=14)
+
+    sns.barplot(x='Feature', y='Value', hue='Type', data=data_melted,
+                palette=['#1f77b4', '#ff7f0e', '#2ca02c'],
+                width=0.6)
+    plt.xticks(rotation=45, ha='right')
+    plt.title('Comparison of Original and Counterfactual Instances', fontsize=14, pad=20)
     plt.xlabel('Features', fontsize=12)
     plt.ylabel('Scaled Values', fontsize=12)
-    plt.legend(title='Instance Type')
+    plt.legend(title='Instance Type', title_fontsize=10, fontsize=8)
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout()
-    plt.savefig(f'{OUTPUT_DIR}/plots/counterfactual_comparison_journal.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{OUTPUT_DIR}/plots/counterfactual_comparison_journal_clean_simply.png', dpi=300, bbox_inches='tight')
     plt.show()
+
+    # === NEW BULK EVALUATION ANALYSIS ===
+    print("\n" + "="*50)
+    print("BULK COUNTERFACTUAL EVALUATION")
+    print("="*50)
+
+    # Perform bulk analysis
+    X_test_scaled_df = pd.DataFrame(X_test_scaled, columns=X.columns)
+    sample_instances, counterfactuals_list = bulk_counterfactual_analysis(
+        X_test_scaled_df, final_model, dice_explainer, n_samples=30, n_counterfactuals=3
+    )
+
+    # Evaluate counterfactual quality
+    print("\nEvaluating counterfactual quality...")
+    evaluation_results = evaluate_counterfactual_quality(
+        sample_instances, counterfactuals_list, final_model, X.columns
+    )
+
+    # Print summary statistics
+    print("\n--- BULK EVALUATION SUMMARY ---")
+    print(f"Validity (flip rate): {np.mean(evaluation_results['validity']):.3f} ± {np.std(evaluation_results['validity']):.3f}")
+    valid_proximities = [p for p in evaluation_results['proximity'] if p != float('inf')]
+    if valid_proximities:
+        print(f"Proximity (L2 distance): {np.mean(valid_proximities):.3f} ± {np.std(valid_proximities):.3f}")
+    print(f"Diversity (pairwise dist): {np.mean(evaluation_results['diversity']):.3f} ± {np.std(evaluation_results['diversity']):.3f}")
+    print(f"Sparsity (features changed): {np.mean(evaluation_results['sparsity']):.3f} ± {np.std(evaluation_results['sparsity']):.3f}")
+
+    # Create comprehensive visualizations
+    create_comprehensive_visualizations(evaluation_results, sample_instances, counterfactuals_list, OUTPUT_DIR)
+
+    # Additional analysis: Most changed features
+    print("\n--- FEATURE CHANGE ANALYSIS ---")
+    all_feature_changes = []
+
+    for i, cf_list in enumerate(counterfactuals_list):
+        if cf_list is not None and hasattr(cf_list, 'final_cfs_df'):
+            original = sample_instances.iloc[i]
+            cfs = cf_list.final_cfs_df
+
+            for _, cf_row in cfs.iterrows():
+                cf_features = cf_row.iloc[:-1].values
+                changes = np.abs(original.values - cf_features)
+                all_feature_changes.append(changes)
+
+    if all_feature_changes:
+        feature_changes_df = pd.DataFrame(all_feature_changes, columns=X.columns)
+        feature_importance = feature_changes_df.mean().sort_values(ascending=False)
+
+        print("Top 10 most frequently changed features:")
+        for i, (feature, change) in enumerate(feature_importance.head(10).items()):
+            print(f"{i+1:2d}. {feature}: {change:.4f}")
+
+    print("\n✓ Bulk counterfactual evaluation completed successfully!")
 
 except Exception as e:
     print(f"⚠ Counterfactual explanation failed: {str(e)}")
     print("Continuing without counterfactual explanations...")
+    import traceback
+    traceback.print_exc()
 
 
 # === STEP 13: COMPREHENSIVE RESULTS SUMMARY ===
@@ -914,6 +1396,9 @@ try:
         summary_df = pd.DataFrame([summary_data])
         summary_df.to_excel(writer, sheet_name='Summary', index=False)
 
+        # TAMBAHAN: Comparative results
+        comparative_results_df.to_excel(writer, sheet_name='Comparative_Results', index=False)
+
         print("✓ Comprehensive results saved to Excel")
 
 except Exception as e:
@@ -955,8 +1440,9 @@ print("="*80)
 print(f"All outputs saved to: {OUTPUT_DIR}/")
 print("Files generated:")
 print("- Models: final_model.pkl, scaler.pkl")
-print("- Data: feature_importance.csv, hyperparameter_tuning_results.csv, cv_metrics_per_fold.csv")
-print("- Plots: target_distribution.png, correlation_matrix.png, model_comparison.png,")
+print("- Data: feature_importance.csv, hyperparameter_tuning_results.csv, cv_metrics_per_fold.csv, comparative_model_results.csv")
+print("- Plots: target_distribution.png, correlation_matrix.png, model_comparison.png, confusion_matrix_no_feature_engineering.png, confusion_matrix_feature_engineering.png,")
+print("         confusion_matrix_feature_engineering_smote.png, ..., comparative_model_performance.png")
 print("         confusion_matrix.png, roc_curve.png, precision_recall_curve.png,")
 print("         calibration_curve.png, feature_importance.png, shap_summary.png, shap_bar.png")
 print("- Summary: comprehensive_results.xlsx")

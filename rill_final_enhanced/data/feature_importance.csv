@@ -1,35 +1,35 @@
 feature,importance
-InternetService_Fiber optic,0.11075393994970545
-tenure,0.0894834526052404
-Contract_Two year,0.06765703265354092
-PaperlessBilling_Yes,0.06709223472663503
-Churn_Risk_Score,0.06023732796848675
-PaymentMethod_Electronic check,0.05646297446329009
-Contract_One year,0.05010119396334388
-TechSupport_Yes,0.04796161820581532
-OnlineSecurity_Yes,0.040712182960309345
-gender_Male,0.03963536450256898
-MultipleLines_Yes,0.035099931510194526
-StreamingTV_Yes,0.03434370940929069
-StreamingMovies_Yes,0.033012600978308
-TotalCharges,0.03136373808905659
-Dependents_Yes,0.030368163416756595
-Partner_Yes,0.02957087822281954
-OnlineBackup_Yes,0.0279632952055656
-MonthlyCharges,0.02658982894051249
-Engagement_Score,0.020826823988672367
-Payment_Reliability,0.0169255283394775
-SeniorCitizen,0.016699737002024304
-DeviceProtection_Yes,0.013926050349797537
-Service_Utilization,0.012124310576929571
-PaymentMethod_Credit card (automatic),0.008810925480977446
-PaymentMethod_Mailed check,0.008387962831437553
-StreamingMovies_No internet service,0.005828751461677397
-DeviceProtection_No internet service,0.004144142822466791
-PhoneService_Yes,0.003652081224445045
-MultipleLines_No phone service,0.003482070121785031
-OnlineBackup_No internet service,0.0024209521231616233
-TechSupport_No internet service,0.0020972008775934294
-InternetService_No,0.0016390971769587625
-OnlineSecurity_No internet service,0.0006248978511554411
-StreamingTV_No internet service,0.0
+tenure,0.09125901675266701
+InternetService_Fiber optic,0.08457561598903
+Contract_Two year,0.06735669179538166
+Churn_Risk_Score,0.06455214573745545
+PaperlessBilling_Yes,0.06101771337470295
+PaymentMethod_Electronic check,0.052555724957385426
+Contract_One year,0.045291663415314806
+gender_Male,0.04442008246369538
+TotalCharges,0.039703339889246465
+TechSupport_Yes,0.03933191578154016
+MultipleLines_Yes,0.03828954446646321
+StreamingMovies_Yes,0.03790229407194959
+MonthlyCharges,0.037524371299816145
+OnlineSecurity_Yes,0.03685016969566083
+StreamingTV_Yes,0.03355786764889356
+Partner_Yes,0.03261169475909398
+Engagement_Score,0.031046178367604912
+Dependents_Yes,0.025452863166341995
+OnlineBackup_Yes,0.025215203398957633
+Service_Utilization,0.019087849887343238
+DeviceProtection_Yes,0.018254464707251266
+SeniorCitizen,0.01823703484357902
+PaymentMethod_Mailed check,0.01332433182609526
+Payment_Reliability,0.011501748273309784
+PaymentMethod_Credit card (automatic),0.01012487720028983
+OnlineBackup_No internet service,0.00702161930102212
+MultipleLines_No phone service,0.0047397286840150845
+DeviceProtection_No internet service,0.003876290331680037
+PhoneService_Yes,0.002898581717100195
+InternetService_No,0.0018172418177965011
+StreamingTV_No internet service,0.0006021343793164046
+TechSupport_No internet service,0.0
+StreamingMovies_No internet service,0.0
+OnlineSecurity_No internet service,0.0
