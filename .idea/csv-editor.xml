@@ -24,7 +24,21 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\rill_final_enhanced\data\comparative_model_results_all_models.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\rill_final_enhanced\data\cv_metrics_per_fold.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\rill_final_enhanced\data\cv_metrics_per_fold_fe_smote.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
