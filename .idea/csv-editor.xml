@@ -31,6 +31,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\rill_final_enhanced\data\cv_detailed_results_all_scenarios.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\rill_final_enhanced\data\cv_metrics_per_fold.csv">
           <value>
             <Attribute>
@@ -39,6 +46,20 @@
           </value>
         </entry>
         <entry key="\rill_final_enhanced\data\cv_metrics_per_fold_fe_smote.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\rill_final_enhanced\data\cv_summary_results_all_scenarios.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\rill_final_enhanced\data\detailed_significance_results.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -60,6 +81,13 @@
           </value>
         </entry>
         <entry key="\rill_final_enhanced\data\resampled_target_distribution.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\rill_final_enhanced\data\statistical_significance_summary.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
