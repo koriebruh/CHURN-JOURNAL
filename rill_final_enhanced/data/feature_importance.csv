@@ -1,35 +1,35 @@
 feature,importance
-Contract_Two year,0.13417476067959436
-tenure,0.11208205748493705
-InternetService_Fiber optic,0.07973461955565647
-Contract_One year,0.0698856943537153
-Churn_Risk_Score,0.049633950629971516
-PaymentMethod_Electronic check,0.048232401984662526
-gender_Male,0.04575176205642548
-MultipleLines_Yes,0.04255100275795859
-Partner_Yes,0.03731304274476338
-PaperlessBilling_Yes,0.03559501628416921
-StreamingMovies_Yes,0.03311133416356905
-MonthlyCharges,0.03257182964332374
-TechSupport_Yes,0.0320289245199928
-Engagement_Score,0.03157428605190692
-OnlineSecurity_Yes,0.029904265773470697
-StreamingTV_Yes,0.029439682031472295
-TotalCharges,0.027562196969187887
-Dependents_Yes,0.021416542392106545
-OnlineBackup_Yes,0.020816251616725436
-Service_Utilization,0.01818273179198818
-DeviceProtection_Yes,0.0155797580315056
-InternetService_No,0.014120324634925957
-SeniorCitizen,0.013073273102823899
-PhoneService_Yes,0.010357021551490037
-PaymentMethod_Credit card (automatic),0.0068369737609341105
-Payment_Reliability,0.0042456941134517414
-PaymentMethod_Mailed check,0.004174083019336326
-MultipleLines_No phone service,5.051829993463027e-05
+tenure,0.0919851604834548
+InternetService_Fiber optic,0.09000873361368042
+Contract_Two year,0.06393715457276537
+Churn_Risk_Score,0.061457615585249745
+PaymentMethod_Electronic check,0.05747621758681851
+PaperlessBilling_Yes,0.05501114934743474
+Contract_One year,0.04574414177813784
+gender_Male,0.044699682342125825
+TechSupport_Yes,0.04039031108204816
+MultipleLines_Yes,0.03976843610293691
+OnlineSecurity_Yes,0.03884667955591299
+TotalCharges,0.037488002963918354
+Partner_Yes,0.03479056155145255
+StreamingTV_Yes,0.032375582187619205
+MonthlyCharges,0.032022457719647436
+StreamingMovies_Yes,0.03193163521222147
+Engagement_Score,0.029126243897354725
+Dependents_Yes,0.027650877627891552
+OnlineBackup_Yes,0.025508849839863398
+SeniorCitizen,0.019128526436495957
+Service_Utilization,0.01841677427836086
+DeviceProtection_Yes,0.017487137450394128
+Payment_Reliability,0.0171041392831326
+PaymentMethod_Mailed check,0.014907598345767548
+PaymentMethod_Credit card (automatic),0.009545224721994434
+OnlineBackup_No internet service,0.007928689064534526
+OnlineSecurity_No internet service,0.0041787702023045326
+DeviceProtection_No internet service,0.00382670184270282
+PhoneService_Yes,0.00338293059259052
+MultipleLines_No phone service,0.0029457690660896147
+StreamingTV_No internet service,0.0009282456650985635
 TechSupport_No internet service,0.0
-StreamingTV_No internet service,0.0
-DeviceProtection_No internet service,0.0
 StreamingMovies_No internet service,0.0
-OnlineBackup_No internet service,0.0
-OnlineSecurity_No internet service,0.0
+InternetService_No,0.0
