@@ -9,6 +9,16 @@ No_FE,NeuralNet,LogisticRegression,0.0625,ns
 No_FE,AdaBoost,LogisticRegression,0.1875,ns
 No_FE,LightGBM,LogisticRegression,0.0625,ns
 No_FE,CatBoost,LogisticRegression,0.0625,ns
+SMOTE_Only,DecisionTree,XGBoost,0.0625,ns
+SMOTE_Only,GBM,XGBoost,0.8125,ns
+SMOTE_Only,XGBoost,XGBoost,0.0,baseline
+SMOTE_Only,RandomForest,XGBoost,0.0625,ns
+SMOTE_Only,LogisticRegression,XGBoost,0.0625,ns
+SMOTE_Only,SVC,XGBoost,0.0625,ns
+SMOTE_Only,NeuralNet,XGBoost,0.0625,ns
+SMOTE_Only,AdaBoost,XGBoost,0.0625,ns
+SMOTE_Only,LightGBM,XGBoost,1.0,ns
+SMOTE_Only,CatBoost,XGBoost,0.625,ns
 FE_Only,DecisionTree,LogisticRegression,0.0625,ns
 FE_Only,GBM,LogisticRegression,0.0625,ns
 FE_Only,XGBoost,LogisticRegression,0.125,ns
